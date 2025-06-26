@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#4CAF50" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+    input, select, textarea { width: 100%; margin: 8px 0; padding: 10px; }
+    button { padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>Order Entry</h2>
+
+  <label>Date</label>
+  <input type="date" id="date" />
+
+  <label>Serial No</label>
+  <input type="number" id="serial" />
+
+  <label>Order ID</label>
+  <input type="text" id="orderId" />
+
+  <label>Product Code</label>
+  <input type="text" id="productCode" />
+
+  <label>Rate (₹)</label>
+  <input type="number" id="rate" />
+
+  <label>Payment Mode</label>
+  <select id="paymentMode">
+    <option value="Cash">Cash</option>
+    <option value="GPay">GPay</option>
+    <option value="Bank Transfer">Bank Transfer</option>
+  </select>
+
+  <label>Cash Received</label>
+  <select id="cashReceived">
+    <option value="✅">✅</option>
+    <option value="❌">❌</option>
+  </select>
+
+  <label>Remarks</label>
+  <textarea id="remarks"></textarea>
+
+  <button onclick="submitOrder()">Submit Order</button>
+
+  <script>
+    const API_URL = "PASTE_YOUR_GOOGLE_WEB_APP_URL_HERE";
+
+    function submitOrder() {
+      const data = {
+        date: document.getElementById('date').value,
+        serial: document.getElementById('serial').value,
+        orderId: document.getElementById('orderId').value,
+        productCode: document.getElementById('productCode').value,
+        rate: document.getElementById('rate').value,
+        paymentMode: document.getElementById('paymentMode').value,
+        cashReceived: document.getElementById('cashReceived').value,
+        remarks: document.getElementById('remarks').value
+      };
+
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => alert('Order submitted successfully!'))
+      .catch(err => alert('Error: ' + err));
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("Service Worker registered."));
+    }
+  </script>
+
+</body>
+</html>
