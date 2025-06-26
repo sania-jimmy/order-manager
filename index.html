@@ -1,83 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Order Manager</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#4CAF50" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" />
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; }
-    input, select, textarea { width: 100%; margin: 8px 0; padding: 10px; }
-    button { padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    input, select, textarea, button { width: 100%; margin: 8px 0; padding: 10px; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
   </style>
 </head>
 <body>
 
-  <h2>Order Entry</h2>
+<h2>Order Entry</h2>
 
-  <label>Date</label>
-  <input type="date" id="date" />
+<input type="date" id="date">
+<input type="number" id="serial" placeholder="Serial No">
+<input type="text" id="orderId" placeholder="Order ID">
+<input type="text" id="productCode" placeholder="Product Code">
+<input type="number" id="rate" placeholder="Rate (₹)">
 
-  <label>Serial No</label>
-  <input type="number" id="serial" />
+<select id="paymentMode">
+  <option value="Cash">Cash</option>
+  <option value="GPay">GPay</option>
+  <option value="Bank Transfer">Bank Transfer</option>
+</select>
 
-  <label>Order ID</label>
-  <input type="text" id="orderId" />
+<select id="cashReceived">
+  <option value="✅">✅</option>
+  <option value="❌">❌</option>
+</select>
 
-  <label>Product Code</label>
-  <input type="text" id="productCode" />
+<textarea id="remarks" placeholder="Remarks"></textarea>
 
-  <label>Rate (₹)</label>
-  <input type="number" id="rate" />
+<button onclick="submitOrder()">Submit Order</button>
 
-  <label>Payment Mode</label>
-  <select id="paymentMode">
-    <option value="Cash">Cash</option>
-    <option value="GPay">GPay</option>
-    <option value="Bank Transfer">Bank Transfer</option>
-  </select>
+<h3>Submitted Orders</h3>
+<table id="ordersTable">
+  <thead></thead>
+  <tbody></tbody>
+</table>
 
-  <label>Cash Received</label>
-  <select id="cashReceived">
-    <option value="✅">✅</option>
-    <option value="❌">❌</option>
-  </select>
+<script>
+const API_URL = "YOUR_WEB_APP_URL_HERE"; // Replace this with your Apps Script Web App URL
 
-  <label>Remarks</label>
-  <textarea id="remarks"></textarea>
+function submitOrder() {
+  const data = {
+    date: document.getElementById('date').value,
+    serial: document.getElementById('serial').value,
+    orderId: document.getElementById('orderId').value,
+    productCode: document.getElementById('productCode').value,
+    rate: document.getElementById('rate').value,
+    paymentMode: document.getElementById('paymentMode').value,
+    cashReceived: document.getElementById('cashReceived').value,
+    remarks: document.getElementById('remarks').value
+  };
 
-  <button onclick="submitOrder()">Submit Order</button>
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert('Order submitted!');
+    clearForm();
+    fetchOrders(); // Refresh the table
+  })
+  .catch(err => alert('Error: ' + err.message));
+}
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzrh4Q2ISrJzDP8_M-qkVrqd81U48mZbbIrMabl_afDfzworMTcKbqUA2_0fXVkLON34Q/exec";
-    function submitOrder() {
-      const data = {
-        date: document.getElementById('date').value,
-        serial: document.getElementById('serial').value,
-        orderId: document.getElementById('orderId').value,
-        productCode: document.getElementById('productCode').value,
-        rate: document.getElementById('rate').value,
-        paymentMode: document.getElementById('paymentMode').value,
-        cashReceived: document.getElementById('cashReceived').value,
-        remarks: document.getElementById('remarks').value
-      };
+function clearForm() {
+  document.querySelectorAll('input, select, textarea').forEach(el => el.value = "");
+}
 
-      fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(response => alert('Order submitted successfully!'))
-      .catch(err => alert('Error: ' + err));
-    }
+function fetchOrders() {
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      const table = document.getElementById('ordersTable');
+      const thead = table.querySelector('thead');
+      const tbody = table.querySelector('tbody');
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log("Service Worker registered."));
-    }
-  </script>
+      if (!data.length) {
+        tbody.innerHTML = "<tr><td colspan='8'>No orders yet.</td></tr>";
+        return;
+      }
+
+      const headers = Object.keys(data[0]);
+      thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
+      tbody.innerHTML = data.map(row =>
+        "<tr>" + headers.map(h => `<td>${row[h]}</td>`).join('') + "</tr>"
+      ).join('');
+    })
+    .catch(err => console.error('Fetch error:', err));
+}
+
+// Fetch orders when page loads
+window.onload = fetchOrders;
+</script>
 
 </body>
 </html>
